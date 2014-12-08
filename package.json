@@ -1,0 +1,56 @@
+{
+  "name": "joukou-data",
+  "version": "1.0.0",
+  "description": "Joukou Data models and schemas.",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "gulp ci"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/joukou/joukou-data.git"
+  },
+  "author": "Joukou Ltd <team@joukou.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/joukou/joukou-data/issues"
+  },
+  "homepage": "https://github.com/joukou/joukou-data",
+  "dependencies": {
+    "bcrypt": "^0.8.0",
+    "lodash": "^2.4.1",
+    "node-uuid": "^1.4.2",
+    "q": "^1.1.2",
+    "restify": "^2.8.3",
+    "riakpbc": "^2.1.0",
+    "schemajs": "^0.1.11",
+    "cheerio": "^0.18.0",
+    "glob": "^4.3.1",
+    "jade": "^1.8.1"
+  },
+  "devDependencies": {
+    "coffee-script": "1.7.1",
+    "lazypipe": "0.2.1",
+    "gulp": "3.6.2",
+    "gulp-clean": "0.2.4",
+    "gulp-coffee": "git://github.com/joukou/gulp-coffee.git#b94c412839",
+    "gulp-coffeelint": "0.3.3",
+    "gulp-coveralls": "0.1.2",
+    "gulp-grep-stream": "0.0.2",
+    "gulp-istanbul": "0.2.0",
+    "gulp-jsdoc": "0.1.4",
+    "gulp-load-plugins": "0.5.1",
+    "gulp-mocha": "0.4.1",
+    "gulp-nodemon": "1.0.2",
+    "gulp-notify": "1.2.5",
+    "gulp-plumber": "0.6.1",
+    "gulp-sloc": "1.0.4",
+    "gulp-util": "2.2.14",
+    "gulp-watch": "0.6.4",
+    "chai": "1.9.1",
+    "chai-as-promised": "4.1.1",
+    "sinon": "1.9.1",
+    "sinon-chai": "2.5.0",
+    "rewire": "2.0.0"
+  }
+}

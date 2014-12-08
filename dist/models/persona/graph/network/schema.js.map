@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "schema.js",
+  "sourceRoot": "",
+  "sources": [
+    "schema.coffee"
+  ],
+  "names": [],
+  "mappings": "AAAA;AAAA;;;;;;;;;;;;;;GAAA;AAAA,IAAA,MAAA;;AAAA,MAeA,GAAS,OAAA,CAAQ,UAAR,CAfT,CAAA;;AAAA,MAiBM,CAAC,OAAP,GAAiB,MAAM,CAAC,MAAP,CACf;AAAA,EAAA,QAAA,EACE;AAAA,IAAA,IAAA,EAAM,QAAN;GADF;AAAA,EAEA,YAAA,EACE;AAAA,IAAA,IAAA,EAAM,SAAN;GAHF;CADe,CAjBjB,CAAA"
+}

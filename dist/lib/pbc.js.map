@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "pbc.js",
+  "sourceRoot": "",
+  "sources": [
+    "pbc.coffee"
+  ],
+  "names": [],
+  "mappings": "AAAA;AAAA;;;;;;;;;;;;;;GAAA;AAAA,MAeM,CAAC,OAAP,GAAiB,OAAA,CAAS,SAAT,CAAoB,CAAC,YAArB,CACf;AAAA,EAAA,IAAA,EAAM,WAAN;AAAA,EACA,IAAA,EAAM,IADN;CADe,CAfjB,CAAA"
+}
