@@ -60,7 +60,6 @@ CircleModel.retrieveByPersonas = ( keys ) ->
     for key of circles
       if not circles.hasOwnProperty( key )
         continue
-      console.log( key )
       result.push(
         circles[ key ]
       )

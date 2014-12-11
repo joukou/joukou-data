@@ -72,7 +72,6 @@ CircleModel.retrieveByPersonas = function(keys) {
       if (!circles.hasOwnProperty(key)) {
         continue;
       }
-      console.log(key);
       result.push(circles[key]);
     }
     return deferred.resolve(result);
