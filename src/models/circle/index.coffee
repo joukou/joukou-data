@@ -30,6 +30,51 @@ CircleModel.afterCreate = (circle) ->
 CircleModel.retrieveByPersona = ( key ) ->
   CircleModel.search( "personas.key:#{key}" )
 
+CircleModel.retrieveByPersonas = ( keys ) ->
+  unless _.isArray( keys )
+    keys = [ keys ]
+  deferred = Q.defer()
+  promises = _.map(personas, (persona) ->
+    like = CircleModel.likeQuery("name", req.params.name, "AND")
+    CircleModel.search(
+                      """
+          personas.key:#{persona.getKey()} AND
+          #{like}
+          """
+    ).then((result) ->
+      return {
+      persona: persona,
+      result: result
+      }
+    )
+  )
+  Q.all(
+    promises
+  )
+  .then((results) ->
+    circles = {}
+    for group of results
+      for circle in group.result
+        if circles[ circle.getKey() ]
+          continue
+        circles[ circle.getKey() ] = circle
+    result = []
+    for key in circles
+      if not circles.hasOwnProperty( key )
+        continue
+      result.push(
+        circles[ key ]
+      )
+    deferred.resolve(
+      result
+    )
+  )
+  .fail( deferred.reject )
+
+  return deferred.promise
+
+
+
 CircleModel::beforeSave = ->
 
 CircleModel::afterRetrieve = ->
