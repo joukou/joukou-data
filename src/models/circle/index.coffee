@@ -16,6 +16,7 @@ limitations under the License.
 Model   = require( '../../lib/Model' )
 schema  = require( './schema' )
 Q       = require( 'q' )
+_       = require( 'lodash' )
 
 CircleModel = Model.define(
   type: 'circle'
@@ -34,17 +35,14 @@ CircleModel.retrieveByPersonas = ( keys ) ->
   unless _.isArray( keys )
     keys = [ keys ]
   deferred = Q.defer()
-  promises = _.map(personas, (persona) ->
-    like = CircleModel.likeQuery("name", req.params.name, "AND")
-    CircleModel.search(
-                      """
-          personas.key:#{persona.getKey()} AND
-          #{like}
-          """
-    ).then((result) ->
+  promises = _.map( keys, ( key ) ->
+    CircleModel.retrieveByPersona(
+      key
+    )
+    .then((result) ->
       return {
-      persona: persona,
-      result: result
+        persona: key,
+        result: result
       }
     )
   )
@@ -53,15 +51,16 @@ CircleModel.retrieveByPersonas = ( keys ) ->
   )
   .then((results) ->
     circles = {}
-    for group of results
+    for group in results
       for circle in group.result
         if circles[ circle.getKey() ]
           continue
         circles[ circle.getKey() ] = circle
     result = []
-    for key in circles
+    for key of circles
       if not circles.hasOwnProperty( key )
         continue
+      console.log( key )
       result.push(
         circles[ key ]
       )
