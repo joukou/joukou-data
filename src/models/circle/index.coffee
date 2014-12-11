@@ -16,6 +16,7 @@ limitations under the License.
 Model   = require( '../../lib/Model' )
 schema  = require( './schema' )
 Q       = require( 'q' )
+_       = require( 'lodash' )
 
 CircleModel = Model.define(
   type: 'circle'
@@ -29,6 +30,49 @@ CircleModel.afterCreate = (circle) ->
 
 CircleModel.retrieveByPersona = ( key ) ->
   CircleModel.search( "personas.key:#{key}" )
+
+CircleModel.retrieveByPersonas = ( keys ) ->
+  unless _.isArray( keys )
+    keys = [ keys ]
+  deferred = Q.defer()
+  promises = _.map( keys, ( key ) ->
+    CircleModel.retrieveByPersona(
+      key
+    )
+    .then((result) ->
+      return {
+        persona: key,
+        result: result
+      }
+    )
+  )
+  Q.all(
+    promises
+  )
+  .then((results) ->
+    circles = {}
+    for group in results
+      for circle in group.result
+        if circles[ circle.getKey() ]
+          continue
+        circles[ circle.getKey() ] = circle
+    result = []
+    for key of circles
+      if not circles.hasOwnProperty( key )
+        continue
+      console.log( key )
+      result.push(
+        circles[ key ]
+      )
+    deferred.resolve(
+      result
+    )
+  )
+  .fail( deferred.reject )
+
+  return deferred.promise
+
+
 
 CircleModel::beforeSave = ->
 

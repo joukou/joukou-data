@@ -45,11 +45,22 @@ module.exports = schema.create({
     type: 'array'
   },
   personas: {
-    type: 'array'
+    type: 'array',
+    schema: {
+      key: {
+        type: 'string'
+      }
+    }
   },
   network: {
     type: 'object',
     schema: network.schema
+  },
+  public_key: {
+    type: 'string'
+  },
+  properties: {
+    type: 'object'
   }
 });
 
