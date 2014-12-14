@@ -38,9 +38,9 @@ Search is supported via solr-client.
 _                = require( 'lodash' )
 Q                = require( 'q' )
 uuid             = require( 'node-uuid' )
-NotFoundError     = require( './error/RiakNotFoundError' )
-ValidationError  = require( './error/ValidationError' )
-RiakError        = require( './error/RiakError' )
+NotFoundError    = require( './errors/RiakNotFoundError' )
+ValidationError  = require( './errors/ValidationError' )
+RiakError        = require( './errors/RiakError' )
 pbc              = require( './pbc' )
 
 module.exports =
