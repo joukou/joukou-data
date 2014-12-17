@@ -34,7 +34,7 @@ Search is supported via solr-client.
 @author Isaac Johnston <isaac.johnston@joukou.com>
 @copyright (c) 2009-2014 Joukou Ltd. All rights reserved.
  */
-var EventEmitter, NotFoundError, Q, RiakError, ValidationError, pbc, uuid, _,
+var EventEmitter, NotFoundError, Q, RiakError, ValidationError, elastic, env, pbc, uuid, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -53,6 +53,10 @@ ValidationError = require('./errors/ValidationError');
 RiakError = require('./errors/RiakError');
 
 pbc = require('./pbc');
+
+env = require('./env');
+
+elastic = require('./elastic');
 
 module.exports = {
   define: function(_arg) {
@@ -232,6 +236,57 @@ module.exports = {
         return " (" + (values.join(" " + op + " ")) + ") ";
       };
 
+      _Class.elasticSearch = function(q, first) {
+        var deferred, params, requestedParams;
+        deferred = Q.defer();
+        params = {
+          index: self.getBucket()
+        };
+        requestedParams = typeof q === 'string' ? {
+          q: q
+        } : q;
+        params = _.assign(params, requestedParams);
+        elastic.search(params, function(err, reply) {
+          var hit, hits, key, result, ret, riakReply, value, _i, _len;
+          if (err) {
+            return deferred.reject(err);
+          }
+          hits = reply.hits;
+          hits = hits.hits;
+          result = [];
+          for (_i = 0, _len = hits.length; _i < _len; _i++) {
+            hit = hits[_i];
+            key = hit._id;
+            value = hit._source;
+            riakReply = {
+              content: [
+                {
+                  value: value
+                }
+              ]
+            };
+            ret = self.createFromReply({
+              key: key,
+              reply: riakReply
+            });
+            if (first) {
+              return deferred.resolve(ret);
+            }
+            result.push(ret);
+          }
+          if (!result.length) {
+            return deferred.reject(new NotFoundError({
+              index: params.index,
+              bucket: self.getBucket(),
+              key: q
+            }));
+          } else {
+            return deferred.resolve(result);
+          }
+        });
+        return deferred.promise;
+      };
+
       _Class.search = function(q, opts) {
         var deferred;
         deferred = Q.defer();
@@ -403,19 +458,49 @@ module.exports = {
       };
 
       _Class.prototype.save = function() {
-        var deferred, model, params;
+        var deferred, elasticSearchPut, model, params, refreshElasticIndex;
         if (this.beforeSave instanceof Function) {
           this.beforeSave();
         }
         deferred = Q.defer();
         model = this;
         params = this._getPbParams();
+        refreshElasticIndex = function(payload) {
+          return elastic.refresh({
+            index: self.getBucket()
+          }, function(err) {
+            if (err) {
+              return deferred.reject(new RiakError(err, model, params));
+            } else {
+              return deferred.resolve(payload);
+            }
+          });
+        };
+        elasticSearchPut = (function(_this) {
+          return function(payload) {
+            if (!env.elastic_search) {
+              return deferred.resolve(reply);
+            }
+            return elastic.index({
+              index: self.getBucket(),
+              type: self.getType(),
+              id: _this.getKey(),
+              body: _this.getValue()
+            }, function(err) {
+              if (err) {
+                return deferred.reject(new RiakError(err, model, params));
+              } else {
+                return refreshElasticIndex(payload);
+              }
+            });
+          };
+        })(this);
         pbc.put(params, (function(_this) {
           return function(err, reply) {
             if (err) {
               return deferred.reject(new RiakError(err, model, params));
             } else {
-              return deferred.resolve(self.createFromReply({
+              return elasticSearchPut(self.createFromReply({
                 key: _this.key,
                 reply: reply
               }));
@@ -499,8 +584,20 @@ module.exports = {
         }
       };
 
-      _Class.prototype.addSecondaryIndex = function(key) {
-        this.indexes.push(key);
+      _Class.prototype.addSecondaryIndex = function(key, value) {
+        if (value == null) {
+          value = null;
+        }
+        if (value != null) {
+          this.addSecondaryIndexWithValue(key, value);
+        } else {
+          this.indexes.push(key);
+        }
+        return this;
+      };
+
+      _Class.prototype.addSecondaryIndexWithValue = function(key, value) {
+        (this.indexValues != null ? this.indexValues : this.indexValues = {})[key] = value;
         return this;
       };
 
@@ -509,11 +606,22 @@ module.exports = {
       };
 
       _Class.prototype._getSecondaryIndexes = function() {
-        var indexes, key, keyResult, _i, _len, _ref;
+        var indexes, key, keyResult, value, _i, _len, _ref, _ref1;
         indexes = [];
-        _ref = this.indexes;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          key = _ref[_i];
+        _ref = this.indexValues != null;
+        for (key in _ref) {
+          value = _ref[key];
+          if (!this.indexValues.hasOwnProperty(key)) {
+            continue;
+          }
+          indexs.push({
+            key: key,
+            value: value
+          });
+        }
+        _ref1 = this.indexes;
+        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+          key = _ref1[_i];
           if (!this.value.hasOwnProperty(key)) {
             continue;
           }

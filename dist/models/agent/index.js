@@ -46,7 +46,7 @@ schema = require('./schema');
 
 Model = require('../../lib/Model');
 
-BcryptError = require('.././BcryptError');
+BcryptError = require('../../lib/errors/BcryptError');
 
 AgentModel = Model.define({
   schema: schema,

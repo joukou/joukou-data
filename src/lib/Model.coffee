@@ -42,6 +42,8 @@ NotFoundError    = require( './errors/RiakNotFoundError' )
 ValidationError  = require( './errors/ValidationError' )
 RiakError        = require( './errors/RiakError' )
 pbc              = require( './pbc' )
+env              = require( './env' )
+elastic          = require( './elastic' )
 
 module.exports =
 
@@ -187,6 +189,64 @@ module.exports =
         if values.length is 0
           return ""
         return " (#{values.join(" #{op} ")}) "
+
+      @elasticSearch = ( q, first ) ->
+        deferred = Q.defer()
+
+        params = {
+          index: self.getBucket()
+        }
+
+        requestedParams = if typeof q is 'string' then { q: q } else q
+
+        params = _.assign(params, requestedParams)
+
+        elastic.search(
+          params,
+          ( err, reply ) ->
+            if err
+              return deferred.reject(
+                err
+              )
+            { hits } = reply
+            { hits } = hits
+            result = []
+            for hit in hits
+              key = hit._id
+              value = hit._source
+
+              riakReply = {
+                content: [
+                  value: value
+                ]
+              }
+
+              ret = self.createFromReply( key: key, reply: riakReply )
+
+              if first
+                return deferred.resolve(
+                  ret
+                )
+
+              result.push(
+                ret
+              )
+
+            if not result.length
+              deferred.reject(
+                new NotFoundError(
+                  index: params.index,
+                  bucket: self.getBucket(),
+                  key: q
+                )
+              )
+            else
+              deferred.resolve(
+                result
+              )
+        )
+
+        return deferred.promise
 
       @search = ( q, opts ) ->
         deferred = Q.defer()
@@ -350,11 +410,50 @@ module.exports =
         model = this
         params = @_getPbParams()
 
+        refreshElasticIndex = ( payload ) ->
+          elastic.refresh(
+            {
+              index: self.getBucket()
+            },
+            ( err ) ->
+              if err
+                deferred.reject(
+                  new RiakError( err, model, params )
+                )
+              else
+                deferred.resolve(
+                  payload
+                )
+          )
+
+        elasticSearchPut = ( payload ) =>
+          if not env.elastic_search
+            return deferred.resolve(
+              reply
+            )
+          elastic.index(
+            {
+              index: self.getBucket(),
+              type: self.getType(),
+              id: @getKey(),
+              body: @getValue()
+            },
+            ( err ) ->
+              if err
+                deferred.reject(
+                  new RiakError( err, model, params )
+                )
+              else
+                refreshElasticIndex( payload )
+          )
+
         pbc.put( params, ( err, reply ) =>
           if err
             deferred.reject( new RiakError( err, model, params ) )
           else
-            deferred.resolve( self.createFromReply( key: @key, reply: reply ) )
+            elasticSearchPut(
+              self.createFromReply( key: @key, reply: reply )
+            )
         )
 
         deferred.promise
@@ -418,8 +517,15 @@ module.exports =
           else
             self._expandContentType( 'plain' )
 
-      addSecondaryIndex: ( key ) ->
-        @indexes.push( key )
+      addSecondaryIndex: ( key, value = null ) ->
+        if value?
+          @addSecondaryIndexWithValue( key, value )
+        else
+          @indexes.push( key )
+        @
+
+      addSecondaryIndexWithValue: ( key, value ) ->
+        (@indexValues ?= {})[ key ] = value
         @
 
       _hasSecondaryIndexes: ->
@@ -427,6 +533,13 @@ module.exports =
 
       _getSecondaryIndexes: ->
         indexes = []
+        for key, value of @indexValues?
+          if not @indexValues.hasOwnProperty( key )
+            continue
+          indexs.push(
+            key: key
+            value: value
+          )
         for key in @indexes
           if not @value.hasOwnProperty( key )
             continue

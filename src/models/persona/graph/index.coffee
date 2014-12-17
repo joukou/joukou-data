@@ -122,5 +122,13 @@ GraphModel::hasConnection = ( options ) ->
 GraphModel::getConnections = ->
   Q.fcall( => @getValue().connections )
 
+GraphModel::beforeSave = ->
+
+GraphModel::afterRetrieve = ->
+  this.addSecondaryIndex( 'name' )
+  this.addSecondaryIndex( 'public_key' )
+  # Unsure as to how to do this yet
+  # this.addSecondaryIndex( 'persona.key_bin' )
+
 
 module.exports = GraphModel

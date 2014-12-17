@@ -161,6 +161,13 @@ GraphModel.prototype.getConnections = function() {
   })(this));
 };
 
+GraphModel.prototype.beforeSave = function() {};
+
+GraphModel.prototype.afterRetrieve = function() {
+  this.addSecondaryIndex('name');
+  return this.addSecondaryIndex('public_key');
+};
+
 module.exports = GraphModel;
 
 /*
