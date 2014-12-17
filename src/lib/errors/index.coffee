@@ -13,11 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ###
-models  = require( './models' )
-schemas = require( './schemas' )
-errors  = require( './lib/errors' )
+BcryptError       = require('./BcryptError')
+DuplicateError    = require('./DuplicateError')
+RiakError         = require('./RiakError')
+RiakNotFoundError = require('./RiakNotFoundError')
+ValidationError   = require('./ValidationError')
 
 module.exports =
-  models: models
-  schemas: schemas
-  errors: errors
+  BcryptError: BcryptError
+  DuplicateError: DuplicateError
+  RiakError: RiakError
+  RiakNotFoundError: RiakNotFoundError
+  ValidationError: ValidationError

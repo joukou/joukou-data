@@ -14,15 +14,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  */
-var models, schemas;
+var errors, models, schemas;
 
 models = require('./models');
 
 schemas = require('./schemas');
 
+errors = require('./lib/errors');
+
 module.exports = {
   models: models,
-  schemas: schemas
+  schemas: schemas,
+  errors: errors
 };
 
 /*

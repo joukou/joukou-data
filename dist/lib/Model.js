@@ -46,11 +46,11 @@ Q = require('q');
 
 uuid = require('node-uuid');
 
-NotFoundError = require('./error/RiakNotFoundError');
+NotFoundError = require('./errors/RiakNotFoundError');
 
-ValidationError = require('./error/ValidationError');
+ValidationError = require('./errors/ValidationError');
 
-RiakError = require('./error/RiakError');
+RiakError = require('./errors/RiakError');
 
 pbc = require('./pbc');
 
