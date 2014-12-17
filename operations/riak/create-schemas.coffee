@@ -21,6 +21,8 @@ cheerio = require('cheerio')
 Q       = require('q')
 child   = require('child_process')
 jade    = require('jade')
+env     = require('../../src/lib/env')
+elastic = require('../../src/lib/elastic')
 
 isActive = ( name ) ->
   deferred = Q.defer()
@@ -152,10 +154,45 @@ runForSchema = ( name, schema ) ->
     .then( deferred.resolve )
   )
   .fail( deferred.reject )
+  return deferred.promise
 
+addElasticIndex = ( name ) ->
+  if not env.elastic_search
+    return Q.resolve( )
+  console.log("creating elastic search index for %s", name)
+  deferred = Q.defer()
+  elastic.indices.exists(
+    {
+      index: name
+    },
+    ( err, reply ) ->
+      if err
+        return deferred.reject(
+          err
+        )
+      if reply
+        console.log("elastic search index for %s already exists", name)
+        return deferred.resolve()
+      elastic.indices.create(
+        {
+          index: name
+        },
+        if err
+          deferred.reject(
+            err
+          )
+        else
+          console.log("created elastic search index for %s", name)
+          deferred.resolve(
 
+          )
+      )
+
+  )
 
   return deferred.promise
+
+
 
 domToSchema = ( name, dom ) ->
   ###
@@ -206,6 +243,8 @@ domToSchema = ( name, dom ) ->
 
   return "<schema name='#{name}' version='1.5'>#{lines.join('')}</schema>"
 
+arg = process.argv[2]
+
 glob('src/**/schema.jade', ( err, files ) ->
   if err
     console.log( err )
@@ -232,9 +271,17 @@ glob('src/**/schema.jade', ( err, files ) ->
         not dom( 'schema types fieldType')
       )
         return next( )
+      if arg and name.toLowerCase() isnt arg.toLowerCase()
+        console.log( "%s isn't %s", name.toLowerCase(), arg.toLowerCase())
+        return next( )
       console.log( "Running for #{name}" )
       xmlSchema = domToSchema( name, dom )
       runForSchema( name, xmlSchema )
+      .then( ->
+        return addElasticIndex(
+          name
+        )
+      )
       .then( next )
       .fail( ( err ) ->
         console.log( err )

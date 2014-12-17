@@ -10,9 +10,10 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 doctype xml
-schema(name='agent' version='1.5')
+schema(name='graph' version='1.5')
    fields
       field(name='name' type='string' indexed='true' stored='false')
+      field(name='public_key' type='string' indexed='true' stored='false')
       field(name='personas.key' type='string' indexed='true' stored='false' multiValued='true')
       // All of these fields are required by Riak Search
       field(name='_yz_id' type='_yz_str' indexed='true' stored='true' required='true' multiValued='false')

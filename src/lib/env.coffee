@@ -13,17 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ###
-models  = require( './models' )
-schemas = require( './schemas' )
-errors  = require( './lib/errors' )
-env     = require( './lib/env' )
-pbc     = require( './lib/pbc' )
-elastic = require( './lib/elastic' )
+_ = require( 'lodash' )
 
-module.exports =
-  models: models
-  schemas: schemas
-  errors: errors
-  env: env
-  elasticSearch: elastic
-  riakPBC: pbc
+self =
+  elastic_search: yes
+  setValues: ( values ) ->
+    _.assign( self, values )
+
+module.exports = self

@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "elastic.js",
+  "sourceRoot": "",
+  "sources": [
+    "elastic.coffee"
+  ],
+  "names": [],
+  "mappings": "AAAA,IAAA,aAAA;;AAAA,aAAA,GAAgB,OAAA,CAAS,eAAT,CAAhB,CAAA;;AAAA,MAEM,CAAC,OAAP,GAAqB,IAAA,aAAa,CAAC,MAAd,CAAqB;AAAA,EACxC,IAAA,EAAM;AAAA,IACJ,QAAA,EAAU,MADN;AAAA,IAEJ,IAAA,EAAM,WAFF;AAAA,IAGJ,IAAA,EAAM,IAHF;GADkC;CAArB,CAFrB,CAAA"
+}

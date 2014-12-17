@@ -14,7 +14,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  */
-var errors, models, schemas;
+var env, errors, models, schemas;
 
 models = require('./models');
 
@@ -22,10 +22,13 @@ schemas = require('./schemas');
 
 errors = require('./lib/errors');
 
+env = require('./lib/env');
+
 module.exports = {
   models: models,
   schemas: schemas,
-  errors: errors
+  errors: errors,
+  env: env
 };
 
 /*
