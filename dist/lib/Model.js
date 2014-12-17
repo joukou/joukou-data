@@ -236,6 +236,57 @@ module.exports = {
         return " (" + (values.join(" " + op + " ")) + ") ";
       };
 
+      _Class.elasticSearch = function(q, first) {
+        var deferred, params, requestedParams;
+        deferred = Q.defer();
+        params = {
+          index: self.getBucket()
+        };
+        requestedParams = typeof q === 'string' ? {
+          q: q
+        } : q;
+        params = _.assign(params, requestedParams);
+        elastic.search(params, function(err, reply) {
+          var hit, hits, key, result, ret, riakReply, value, _i, _len;
+          if (err) {
+            return deferred.reject(err);
+          }
+          hits = reply.hits;
+          hits = hits.hits;
+          result = [];
+          for (_i = 0, _len = hits.length; _i < _len; _i++) {
+            hit = hits[_i];
+            key = hit._id;
+            value = hit._source;
+            riakReply = {
+              content: [
+                {
+                  value: value
+                }
+              ]
+            };
+            ret = self.createFromReply({
+              key: key,
+              reply: riakReply
+            });
+            if (first) {
+              return deferred.resolve(ret);
+            }
+            result.push(ret);
+          }
+          if (!result.length) {
+            return deferred.reject(new NotFoundError({
+              index: params.index,
+              bucket: self.getBucket(),
+              key: q
+            }));
+          } else {
+            return deferred.resolve(result);
+          }
+        });
+        return deferred.promise;
+      };
+
       _Class.search = function(q, opts) {
         var deferred;
         deferred = Q.defer();
@@ -407,28 +458,39 @@ module.exports = {
       };
 
       _Class.prototype.save = function() {
-        var deferred, elasticSearchPut, model, params;
+        var deferred, elasticSearchPut, model, params, refreshElasticIndex;
         if (this.beforeSave instanceof Function) {
           this.beforeSave();
         }
         deferred = Q.defer();
         model = this;
         params = this._getPbParams();
+        refreshElasticIndex = function(payload) {
+          return elastic.refresh({
+            index: self.getBucket()
+          }, function(err) {
+            if (err) {
+              return deferred.reject(new RiakError(err, model, params));
+            } else {
+              return deferred.resolve(payload);
+            }
+          });
+        };
         elasticSearchPut = (function(_this) {
           return function(payload) {
             if (!env.elastic_search) {
               return deferred.resolve(reply);
             }
             return elastic.index({
-              index: self.bucket,
-              type: self.bucket,
+              index: self.getBucket(),
+              type: self.getType(),
               id: _this.getKey(),
               body: _this.getValue()
             }, function(err) {
               if (err) {
                 return deferred.reject(new RiakError(err, model, params));
               } else {
-                return deferred.resolve(payload);
+                return refreshElasticIndex(payload);
               }
             });
           };

@@ -193,11 +193,16 @@ module.exports =
       @elasticSearch = ( q, first ) ->
         deferred = Q.defer()
 
+        params = {
+          index: self.getBucket()
+        }
+
+        requestedParams = if typeof q is 'string' then { q: q } else q
+
+        params = _.assign(params, requestedParams)
+
         elastic.search(
-          {
-            q: q,
-            index: self.getBucket()
-          },
+          params,
           ( err, reply ) ->
             if err
               return deferred.reject(
@@ -227,9 +232,18 @@ module.exports =
                 ret
               )
 
-            deferred.resolve(
-              result
-            )
+            if not result.length
+              deferred.reject(
+                new NotFoundError(
+                  index: params.index,
+                  bucket: self.getBucket(),
+                  key: q
+                )
+              )
+            else
+              deferred.resolve(
+                result
+              )
         )
 
         return deferred.promise
