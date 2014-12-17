@@ -410,22 +410,6 @@ module.exports =
         model = this
         params = @_getPbParams()
 
-        refreshElasticIndex = ( payload ) ->
-          elastic.refresh(
-            {
-              index: self.getBucket()
-            },
-            ( err ) ->
-              if err
-                deferred.reject(
-                  new RiakError( err, model, params )
-                )
-              else
-                deferred.resolve(
-                  payload
-                )
-          )
-
         elasticSearchPut = ( payload ) =>
           if not env.elastic_search
             return deferred.resolve(
@@ -436,7 +420,8 @@ module.exports =
               index: self.getBucket(),
               type: self.getType(),
               id: @getKey(),
-              body: @getValue()
+              body: @getValue(),
+              refresh: true
             },
             ( err ) ->
               if err
@@ -444,7 +429,9 @@ module.exports =
                   new RiakError( err, model, params )
                 )
               else
-                refreshElasticIndex( payload )
+                deferred.resolve(
+                  payload
+                )
           )
 
         pbc.put( params, ( err, reply ) =>

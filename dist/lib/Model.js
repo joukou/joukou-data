@@ -458,24 +458,13 @@ module.exports = {
       };
 
       _Class.prototype.save = function() {
-        var deferred, elasticSearchPut, model, params, refreshElasticIndex;
+        var deferred, elasticSearchPut, model, params;
         if (this.beforeSave instanceof Function) {
           this.beforeSave();
         }
         deferred = Q.defer();
         model = this;
         params = this._getPbParams();
-        refreshElasticIndex = function(payload) {
-          return elastic.refresh({
-            index: self.getBucket()
-          }, function(err) {
-            if (err) {
-              return deferred.reject(new RiakError(err, model, params));
-            } else {
-              return deferred.resolve(payload);
-            }
-          });
-        };
         elasticSearchPut = (function(_this) {
           return function(payload) {
             if (!env.elastic_search) {
@@ -485,12 +474,13 @@ module.exports = {
               index: self.getBucket(),
               type: self.getType(),
               id: _this.getKey(),
-              body: _this.getValue()
+              body: _this.getValue(),
+              refresh: true
             }, function(err) {
               if (err) {
                 return deferred.reject(new RiakError(err, model, params));
               } else {
-                return refreshElasticIndex(payload);
+                return deferred.resolve(payload);
               }
             });
           };
