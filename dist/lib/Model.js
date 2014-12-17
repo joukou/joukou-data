@@ -405,19 +405,38 @@ module.exports = {
       };
 
       _Class["delete"] = function(key) {
-        var deferred;
+        var deferred, elasticDelete, riakDelete;
         deferred = Q.defer();
-        pbc.del({
-          type: self.getType(),
-          bucket: self.getBucket(),
-          key: key
-        }, function(err, reply) {
-          if (err) {
-            return deferred.reject(new RiakError(err));
-          } else {
-            return deferred.resolve();
-          }
-        });
+        elasticDelete = function() {
+          return elastic["delete"]({
+            index: self.getBucket(),
+            type: self.getType(),
+            id: key
+          }, function(err) {
+            if (err) {
+              return deferred.reject(new RiakError(err));
+            }
+            return riakDelete();
+          });
+        };
+        riakDelete = function() {
+          return pbc.del({
+            type: self.getType(),
+            bucket: self.getBucket(),
+            key: key
+          }, function(err) {
+            if (err) {
+              return deferred.reject(new RiakError(err));
+            } else {
+              return deferred.resolve();
+            }
+          });
+        };
+        if (env.elastic_search) {
+          elasticDelete();
+        } else {
+          riakDelete();
+        }
         return deferred.promise;
       };
 
