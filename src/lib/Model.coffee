@@ -356,16 +356,39 @@ module.exports =
       @delete = ( key ) ->
         deferred = Q.defer()
 
-        pbc.del(
-          type: self.getType()
-          bucket: self.getBucket()
-          key: key
-        , ( err, reply ) ->
-          if err
-            deferred.reject( new RiakError( err ) )
-          else
-            deferred.resolve()
-        )
+        elasticDelete = ->
+          elastic.delete(
+            {
+              index: self.getBucket(),
+              type: self.getType(),
+              id: key
+            },
+            ( err ) ->
+              if err
+                return deferred.reject(
+                  new RiakError( err )
+                )
+              riakDelete()
+          )
+
+        riakDelete = ->
+          pbc.del(
+            type: self.getType()
+            bucket: self.getBucket()
+            key: key
+          , ( err ) ->
+            if err
+              deferred.reject( new RiakError( err ) )
+            else
+              deferred.resolve()
+          )
+
+        if env.elastic_search
+          elasticDelete()
+        else
+          riakDelete()
+
+
 
         deferred.promise
 
@@ -410,22 +433,6 @@ module.exports =
         model = this
         params = @_getPbParams()
 
-        refreshElasticIndex = ( payload ) ->
-          elastic.refresh(
-            {
-              index: self.getBucket()
-            },
-            ( err ) ->
-              if err
-                deferred.reject(
-                  new RiakError( err, model, params )
-                )
-              else
-                deferred.resolve(
-                  payload
-                )
-          )
-
         elasticSearchPut = ( payload ) =>
           if not env.elastic_search
             return deferred.resolve(
@@ -436,7 +443,8 @@ module.exports =
               index: self.getBucket(),
               type: self.getType(),
               id: @getKey(),
-              body: @getValue()
+              body: @getValue(),
+              refresh: true
             },
             ( err ) ->
               if err
@@ -444,7 +452,9 @@ module.exports =
                   new RiakError( err, model, params )
                 )
               else
-                refreshElasticIndex( payload )
+                deferred.resolve(
+                  payload
+                )
           )
 
         pbc.put( params, ( err, reply ) =>
