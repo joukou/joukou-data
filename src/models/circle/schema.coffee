@@ -22,6 +22,8 @@ module.exports = schema.create(
     required: yes
   description:
     type: 'string'
+  library:
+    type: 'string'
   icon:
     type: 'string+'
 # Docker image

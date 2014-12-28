@@ -190,6 +190,17 @@ module.exports =
           return ""
         return " (#{values.join(" #{op} ")}) "
 
+      @escapeElasticSearchCharacters = ( value ) ->
+        if typeof value isnt 'string'
+          return value
+        # Replace all reserved characters
+        # http://www.elasticsearch.org/guide/en/elasticsearch/
+        # reference/current/query-dsl-query-string-query.html#_reserved_characters
+        return value.replace(
+          /\&{2}|\||[\+\-≈!\(\)\{\}\[\]\^"~\*\?:\\/ ]/g,
+          '\\$&'
+        )
+
       @elasticSearch = ( q, first ) ->
         deferred = Q.defer()
 
