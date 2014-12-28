@@ -424,8 +424,8 @@ module.exports = {
             type: self.getType(),
             bucket: self.getBucket(),
             key: key
-          }, function(err) {
-            if (err) {
+          }, function(err, reply, status) {
+            if (err && status !== 404) {
               return deferred.reject(new RiakError(err));
             } else {
               return deferred.resolve();
