@@ -197,7 +197,7 @@ module.exports =
         # http://www.elasticsearch.org/guide/en/elasticsearch/
         # reference/current/query-dsl-query-string-query.html#_reserved_characters
         return value.replace(
-          /\&{2}|\||[\+\-≈!\(\)\{\}\[\]\^"~\*\?:\\/ ]/g,
+          /\&{2}|\|{2}|[\+\-≈!\(\)\{\}\[\]\^"~\*\?:\\/ ]/g,
           '\\$&'
         )
 

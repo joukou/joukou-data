@@ -240,7 +240,7 @@ module.exports = {
         if (typeof value !== 'string') {
           return value;
         }
-        return value.replace(/\&{2}|\||[\+\-≈!\(\)\{\}\[\]\^"~\*\?:\\/ ]/g, '\\$&');
+        return value.replace(/\&{2}|\|{2}|[\+\-≈!\(\)\{\}\[\]\^"~\*\?:\\/ ]/g, '\\$&');
       };
 
       _Class.elasticSearch = function(q, first) {
