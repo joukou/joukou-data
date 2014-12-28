@@ -35,6 +35,85 @@ CircleModel.afterCreate = function(circle) {
   return Q.resolve(circle);
 };
 
+CircleModel.getByFullName = function(fullName, persona) {
+  var funcs, getByFullNamePersona, personas, result, results;
+  if (!fullName) {
+    return Q.reject('Name is required');
+  }
+  if (!persona) {
+    return Q.reject('Persona key is required');
+  }
+  results = [];
+  getByFullNamePersona = function(persona_key) {
+    var escapedKey, escapedLibrary, escapedName, library, name, query, split;
+    library = void 0;
+    name = fullName;
+    split = fullName.split('/');
+    if (split.length > 1) {
+      library = split[0];
+      name = split[1];
+    }
+    if (!(library && name)) {
+      library = void 0;
+      name = fullName;
+    }
+    escapedName = CircleModel.escapeElasticSearchCharacters(name);
+    escapedKey = CircleModel.escapeElasticSearchCharacters(persona_key);
+    query = "personas.key:" + escapedKey + " AND name:" + escapedName;
+    if (library != null) {
+      escapedLibrary = CircleModel.escapeElasticSearchCharacters(library);
+      query += " AND library:" + escapedLibrary;
+    }
+    return CircleModel.elasticSearch(query).then(function(circles) {
+      var circle;
+      if (circles.length > 1) {
+        throw new Error("More then one component found for " + persona_key + "#" + fullName);
+      }
+      circle = circles[0];
+      results.push(circle);
+      return circle;
+    });
+  };
+  personas = void 0;
+  if (_.isArray(persona)) {
+    personas = persona;
+  } else {
+    personas = [persona];
+  }
+  funcs = _.map(personas, function(persona) {
+    var key;
+    key = void 0;
+    if (typeof persona === 'string') {
+      key = persona;
+    } else if (persona.key != null) {
+      key = persona.key;
+    }
+    if (typeof key !== 'string') {
+      return Q.reject('Persona key is not a string');
+    }
+    return function() {
+      return getByFullNamePersona(key);
+    };
+  });
+  result = Q([]);
+  funcs.forEach(function(func) {
+    return result = result.then(func);
+  });
+  result.then(function() {
+    var distinct, values;
+    distinct = {};
+    _.each(results, function(circle) {
+      return distinct[circle.getKey()] = circle;
+    });
+    values = _.values(distinct);
+    if (values.length > 1) {
+      throw new Error("More then one component found for " + fullName);
+    }
+    return values[0];
+  });
+  return result;
+};
+
 CircleModel.retrieveByPersona = function(key) {
   return CircleModel.search("personas.key:" + key);
 };
@@ -84,6 +163,13 @@ CircleModel.prototype.beforeSave = function() {};
 CircleModel.prototype.afterRetrieve = function() {
   this.addSecondaryIndex('name_bin');
   return this.addSecondaryIndex('personas.key_bin');
+};
+
+CircleModel.prototype.getFullName = function() {
+  if (this.library == null) {
+    return this.name;
+  }
+  return "" + this.library + "/" + this.name;
 };
 
 module.exports = CircleModel;

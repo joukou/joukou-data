@@ -28,6 +28,9 @@ module.exports = schema.create({
   description: {
     type: 'string'
   },
+  library: {
+    type: 'string'
+  },
   icon: {
     type: 'string+'
   },

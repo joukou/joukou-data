@@ -236,6 +236,13 @@ module.exports = {
         return " (" + (values.join(" " + op + " ")) + ") ";
       };
 
+      _Class.escapeElasticSearchCharacters = function(value) {
+        if (typeof value !== 'string') {
+          return value;
+        }
+        return value.replace(/\&{2}|\|{2}|[\+\-≈!\(\)\{\}\[\]\^"~\*\?:\\/ ]/g, '\\$&');
+      };
+
       _Class.elasticSearch = function(q, first) {
         var deferred, params, requestedParams;
         deferred = Q.defer();
