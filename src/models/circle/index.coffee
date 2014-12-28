@@ -170,7 +170,7 @@ CircleModel::afterRetrieve = ->
 
 CircleModel::getFullName = ->
   if not @library?
-    return "#{ @library }/#{ @name }"
-  return @name
+    return @name
+  return "#{ @library }/#{ @name }"
 
 module.exports = CircleModel

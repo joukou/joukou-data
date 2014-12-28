@@ -167,9 +167,9 @@ CircleModel.prototype.afterRetrieve = function() {
 
 CircleModel.prototype.getFullName = function() {
   if (this.library == null) {
-    return "" + this.library + "/" + this.name;
+    return this.name;
   }
-  return this.name;
+  return "" + this.library + "/" + this.name;
 };
 
 module.exports = CircleModel;
