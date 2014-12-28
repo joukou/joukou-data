@@ -376,8 +376,8 @@ module.exports =
             type: self.getType()
             bucket: self.getBucket()
             key: key
-          , ( err ) ->
-            if err
+          , ( err, reply, status ) ->
+            if err and status isnt 404
               deferred.reject( new RiakError( err ) )
             else
               deferred.resolve()
